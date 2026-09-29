@@ -1,21 +1,18 @@
 import { Hono } from 'hono'
 
-const app = new Hono()
+// Bind the D1 database for TypeScript support
+type Bindings = {
+  DB: D1Database
+}
 
-app.get('/', (c) => {
-  return c.text('Hello Cloudflare! The backend is live.')
-})
+const app = new Hono<{ Bindings: Bindings }>()
 
-// Standard health check for client capacity monitoring
+app.get('/', (c) => c.text('Hello Cloudflare! The backend is live.'))
+
 app.get('/api/v1/health', (c) => {
-  return c.json({ 
-    status: 'operational', 
-    service: 'eaas-platform',
-    timestamp: new Date().toISOString() 
-  })
+  return c.json({ status: 'operational', service: 'eaas-platform', timestamp: new Date().toISOString() })
 })
 
-// Webhook receiver for automated workflow payloads or alerts
 app.post('/api/v1/webhooks/receive', async (c) => {
   try {
     const payload = await c.req.json()
@@ -24,6 +21,12 @@ app.post('/api/v1/webhooks/receive', async (c) => {
   } catch (error) {
     return c.json({ success: false, error: 'Invalid JSON' }, 400)
   }
+})
+
+// NEW: Query your live D1 database
+app.get('/api/v1/clients', async (c) => {
+  const { results } = await c.env.DB.prepare('SELECT * FROM clients').all()
+  return c.json(results)
 })
 
 export default app
