@@ -6,3 +6,12 @@ compatibility_date = "2024-03-20"
 binding = "DB"
 database_name = "eaas-db"
 database_id = "44c3c416-fd5b-4c34-aba8-4688335566c0"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "eaas-queue"
+
+[[queues.consumers]]
+queue = "eaas-queue"
+max_batch_size = 10
+max_batch_timeout = 5
